@@ -1,4 +1,11 @@
 {
   "name": "EcoPulse",
-  "displayName": "EcoPulse"
+  "displayName": "EcoPulse",
+  "extra": {
+    "eas": {
+      "projectId": "fb9347a7-af16-4d2c-9618-fdf48eef7b48"
+    }
+  },
+  "owner": "thassara",
+  "slug": "climateapp"
 }
