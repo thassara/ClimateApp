@@ -12,28 +12,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
-import { getAirQualityHistory } from "../../services/Air quality/airQualityService";
+import { getAQIPredictions } from "../../services/Air quality/airQualityService";
 
 const { width } = Dimensions.get("window");
 
-// Sample data for demonstration (will be replaced with actual API data)
-const sampleCities = ["New York", "London", "Tokyo", "Paris", "Berlin", "Sydney", "Colombo"];
+// Sample data for demonstration
+const sampleCities = ["New York", "London", "Tokyo", "Paris", "Berlin", "Sydney", "Colombo", "Dehli"];
 const aqiColors = {
   good: "#4CAF50",
   moderate: "#FFC107",
   unhealthy: "#FF9800",
   veryUnhealthy: "#F44336",
   hazardous: "#9C27B0",
-};
-
-// Colors for different pollutants in the chart
-const pollutantColors = {
-  pm2_5: "#FF6384",
-  no2: "#36A2EB",
-  o3: "#FFCE56",
-  so2: "#4BC0C0",
-  co: "#9966FF",
-  pm10: "#FF9F40",
 };
 
 // Interface for AqiIndicator props
@@ -62,22 +52,17 @@ const AqiIndicator = ({ aqi }: AqiIndicatorProps) => {
   );
 };
 
-// Interface for HistoryCard props
-interface HistoryCardProps {
+// Interface for PredictionCard props
+interface PredictionCardProps {
   item: {
+    day: number;
+    predictedAQI: number;
     date: string;
-    avgAqi: number;
-    maxAqi: number;
-    minAqi: number;
-    hourlyData: any[];
   };
-  onSelect: (date: string, hourlyData: any[]) => void;
-  isSelected: boolean;
-  showChart: boolean;
 }
 
-// History Card Component (showing daily data)
-const HistoryCard = ({ item, onSelect, isSelected, showChart }: HistoryCardProps) => {
+// Prediction Card Component
+const PredictionCard = ({ item }: PredictionCardProps) => {
   const date = new Date(item.date);
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "short",
@@ -85,191 +70,55 @@ const HistoryCard = ({ item, onSelect, isSelected, showChart }: HistoryCardProps
     day: "numeric",
   });
 
-  // Prepare data for the chart
-  const chartData = {
-    labels: item.hourlyData.map(hour => {
-      const date = new Date(hour.timestamp);
-      return date.getHours().toString().padStart(2, '0') + ':00';
-    }),
-    datasets: [
-      {
-        data: item.hourlyData.map(hour => hour.components.pm2_5),
-        color: () => pollutantColors.pm2_5,
-        strokeWidth: 2,
-        label: "PM2.5"
-      },
-      {
-        data: item.hourlyData.map(hour => hour.components.no2),
-        color: () => pollutantColors.no2,
-        strokeWidth: 2,
-        label: "NO₂"
-      },
-      {
-        data: item.hourlyData.map(hour => hour.components.o3),
-        color: () => pollutantColors.o3,
-        strokeWidth: 2,
-        label: "O₃"
-      },
-      {
-        data: item.hourlyData.map(hour => hour.components.so2 || 0),
-        color: () => pollutantColors.so2,
-        strokeWidth: 2,
-        label: "SO₂"
-      },
-    ],
-  };
-
-  const chartConfig = {
-    backgroundColor: "#ffffff",
-    backgroundGradientFrom: "#ffffff",
-    backgroundGradientTo: "#ffffff",
-    decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    style: {
-      borderRadius: 16
-    },
-    propsForDots: {
-      r: "3",
-      strokeWidth: "1",
-    }
-  };
-
   return (
-    <View>
-      <TouchableOpacity 
-        style={[styles.card, isSelected && styles.selectedCard]}
-        onPress={() => onSelect(item.date, item.hourlyData)}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardDate}>{formattedDate}</Text>
-          <View style={styles.aqiValueContainer}>
-            <Text style={styles.aqiValue}>{item.avgAqi.toFixed(1)}</Text>
-            <Text style={styles.aqiLabel}>Avg AQI</Text>
-          </View>
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardDate}>{formattedDate}</Text>
+        <View style={styles.aqiValueContainer}>
+          <Text style={styles.aqiValue}>{item.predictedAQI}</Text>
+          <Text style={styles.aqiLabel}>Predicted AQI</Text>
         </View>
+      </View>
 
-        <AqiIndicator aqi={item.avgAqi} />
+      <AqiIndicator aqi={item.predictedAQI} />
 
-        <View style={styles.componentsContainer}>
-          <View style={styles.componentRow}>
-            <View style={styles.componentItem}>
-              <Text style={styles.componentLabel}>Max AQI</Text>
-              <Text style={styles.componentValue}>{item.maxAqi.toFixed(1)}</Text>
-            </View>
-            <View style={styles.componentItem}>
-              <Text style={styles.componentLabel}>Min AQI</Text>
-              <Text style={styles.componentValue}>{item.minAqi.toFixed(1)}</Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {isSelected && showChart && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>
-            Pollutant Levels by Hour for {formattedDate}
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-            <LineChart
-              data={chartData}
-              width={Math.max(width - 40, item.hourlyData.length * 50)}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chart}
-              withVerticalLines={item.hourlyData.length <= 24}
-              withHorizontalLines={true}
-              segments={5}
-            />
-          </ScrollView>
-          
-          <View style={styles.legendContainer}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: pollutantColors.pm2_5 }]} />
-              <Text style={styles.legendText}>PM2.5</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: pollutantColors.no2 }]} />
-              <Text style={styles.legendText}>NO₂</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: pollutantColors.o3 }]} />
-              <Text style={styles.legendText}>O₃</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: pollutantColors.so2 }]} />
-              <Text style={styles.legendText}>SO₂</Text>
-            </View>
-          </View>
-        </View>
-      )}
+      <View style={styles.componentsContainer}>
+        <Text style={styles.predictionText}>Day {item.day} prediction</Text>
+      </View>
     </View>
   );
 };
 
-// Function to process API data and group by day
-const processHistoryData = (data: any[]) => {
-  // Group data by day
-  const dailyData: {[key: string]: any[]} = {};
-  
-  data.forEach(item => {
-    const date = new Date(item.timestamp);
-    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    if (!dailyData[dateKey]) {
-      dailyData[dateKey] = [];
-    }
-    
-    dailyData[dateKey].push(item);
-  });
-  
-  // Calculate daily averages, max, and min
-  const processedData = Object.keys(dailyData).map(date => {
-    const dayData = dailyData[date];
-    const aqis = dayData.map(d => d.aqi);
-    
-    return {
-      date,
-      avgAqi: aqis.reduce((sum, aqi) => sum + aqi, 0) / aqis.length,
-      maxAqi: Math.max(...aqis),
-      minAqi: Math.min(...aqis),
-      hourlyData: dayData // Keep hourly data for the graph
-    };
-  });
-  
-  return processedData;
-};
 
-export default function HistoryScreen() {
+export default function PredictionScreen() {
   const [city, setCity] = useState("");
-  const [history, setHistory] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<"historical" | "predictions">("predictions");
 
-  const handleFetchHistory = async () => {
+  const handleFetchPredictions = async () => {
     if (!city.trim()) return;
     
     try {
       setLoading(true);
       setError(null);
       setShowSuggestions(false);
-      setSelectedDate(null);
-      const res = await getAirQualityHistory(city, 5); // last 3 days
       
-      // Process the data to group by day
-      const processedData = processHistoryData(res.trends);
-      setHistory(processedData);
+      const result = await getAQIPredictions(city, 5);
       
-      if (processedData.length === 0) {
-        setError("No historical data available for this city");
+      if (result.success) {
+        setPredictions(result.data.predictions);
+        setHistoricalData(result.data.historicalData);
+      } else {
+        setError(result.message || "Failed to fetch predictions");
       }
     } catch (error) {
-      console.error("Error fetching history", error);
-      setError("Failed to fetch air quality data. Please try again.");
+      console.error("Error fetching predictions", error);
+      setError("Failed to fetch predictions. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -293,21 +142,51 @@ export default function HistoryScreen() {
     setShowSuggestions(false);
   };
 
-  const handleDateSelect = (date: string) => {
-    // Toggle selection - if already selected, deselect it
-    setSelectedDate(selectedDate === date ? null : date);
+  // Prepare data for the chart (combine historical and predicted data)
+  const allData = [...historicalData, ...predictions.map(p => ({ date: p.date, aqi: p.predictedAQI }))];
+  
+  const chartData = {
+    labels: allData.map(item => {
+      const date = new Date(item.date);
+      return date.getDate().toString() + '/' + (date.getMonth() + 1);
+    }),
+    datasets: [
+      {
+        data: allData.map(item => item.aqi),
+        color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+        strokeWidth: 2
+      }
+    ],
+    legend: ["AQI Trend"]
+  };
+
+  const chartConfig = {
+    backgroundColor: "#ffffff",
+    backgroundGradientFrom: "#ffffff",
+    backgroundGradientTo: "#ffffff",
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    style: {
+      borderRadius: 16
+    },
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: "#4CAF50"
+    }
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Text style={styles.title}>Historical Air Quality</Text>
-          <Text style={styles.searchIcon}>📈</Text>
+          <Text style={styles.title}>Air Quality Predictions</Text>
+          <Text style={styles.Icon}>🔮</Text>
         </View>
         
         <Text style={styles.subtitle}>
-          Track air quality trends over time
+          Get AQI predictions for the next 5 days
         </Text>
 
         <View style={styles.searchSection}>
@@ -340,7 +219,7 @@ export default function HistoryScreen() {
 
           <TouchableOpacity 
             style={[styles.searchButton, !city.trim() && styles.searchButtonDisabled]}
-            onPress={handleFetchHistory}
+            onPress={handleFetchPredictions}
             disabled={!city.trim()}
           >
             {loading ? (
@@ -348,7 +227,7 @@ export default function HistoryScreen() {
             ) : (
               <>
                 <Ionicons name="cloud-download" size={20} color="#fff" />
-                <Text style={styles.searchButtonText}>Get History</Text>
+                <Text style={styles.searchButtonText}>Get Predictions</Text>
               </>
             )}
           </TouchableOpacity>
@@ -357,7 +236,7 @@ export default function HistoryScreen() {
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#000" />
-            <Text style={styles.loadingText}>Fetching air quality data...</Text>
+            <Text style={styles.loadingText}>Fetching predictions...</Text>
           </View>
         )}
 
@@ -368,39 +247,96 @@ export default function HistoryScreen() {
           </View>
         )}
 
-        {history.length > 0 && !loading && !error && (
+        {predictions.length > 0 && !loading && !error && (
           <View style={styles.resultsContainer}>
+            <View style={styles.tabContainer}>
+              <TouchableOpacity 
+                style={[styles.tab, selectedTab === "historical" && styles.activeTab]}
+                onPress={() => setSelectedTab("historical")}
+              >
+                <Text style={[styles.tabText, selectedTab === "historical" && styles.activeTabText]}>
+                  Historical Data
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.tab, selectedTab === "predictions" && styles.activeTab]}
+                onPress={() => setSelectedTab("predictions")}
+              >
+                <Text style={[styles.tabText, selectedTab === "predictions" && styles.activeTabText]}>
+                  Predictions
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsTitle}>
-                Air Quality History for {city}
-              </Text>
-              <Text style={styles.resultsSubtitle}>
-                Last {history.length} days
+                Air Quality {selectedTab === "historical" ? "History" : "Predictions"} for {city}
               </Text>
             </View>
 
-            <FlatList
-              data={history}
-              keyExtractor={(item) => item.date}
-              renderItem={({ item }) => (
-                <HistoryCard 
-                  item={item} 
-                  onSelect={handleDateSelect}
-                  isSelected={selectedDate === item.date}
-                  showChart={true}
-                />
-              )}
-              contentContainerStyle={styles.listContainer}
-              scrollEnabled={false}
-            />
+            {/* Chart showing the trend */}
+            <View style={styles.chartContainer}>
+              <Text style={styles.chartTitle}>
+                AQI Trend (Historical + Predictions)
+              </Text>
+              <LineChart
+                data={chartData}
+                width={width - 40}
+                height={220}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chart}
+                fromZero={true}
+              />
+              <View style={styles.chartNote}>
+                <Text style={styles.chartNoteText}>
+                  Note: Vertical line separates historical data (left) from predictions (right)
+                </Text>
+              </View>
+            </View>
+
+            {selectedTab === "historical" ? (
+              <FlatList
+                data={historicalData}
+                keyExtractor={(item) => item.date}
+                renderItem={({ item }) => (
+                  <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardDate}>
+                        {new Date(item.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </Text>
+                      <View style={styles.aqiValueContainer}>
+                        <Text style={styles.aqiValue}>{item.aqi}</Text>
+                        <Text style={styles.aqiLabel}>AQI</Text>
+                      </View>
+                    </View>
+                    <AqiIndicator aqi={item.aqi} />
+                  </View>
+                )}
+                contentContainerStyle={styles.listContainer}
+                scrollEnabled={false}
+              />
+            ) : (
+              <FlatList
+                data={predictions}
+                keyExtractor={(item) => item.date}
+                renderItem={({ item }) => <PredictionCard item={item} />}
+                contentContainerStyle={styles.listContainer}
+                scrollEnabled={false}
+              />
+            )}
           </View>
         )}
 
-        {history.length === 0 && !loading && !error && (
+        {predictions.length === 0 && !loading && !error && (
           <View style={styles.placeholderContainer}>
-            <Ionicons name="earth" size={64} color="rgba(0,0,0,0.3)" />
+            <Ionicons name="analytics" size={64} color="rgba(0,0,0,0.3)" />
             <Text style={styles.placeholderText}>
-              Enter a city name to view its air quality history
+              Enter a city name to view AQI predictions
             </Text>
           </View>
         )}
@@ -428,8 +364,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     color: "#000",
-    textAlign: 'center',
-    marginRight: 12,
   },
   subtitle: {
     fontSize: 16,
@@ -453,9 +387,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  searchIcon: {
-    marginRight: 12,
-    fontSize: 25
+  Icon: {
+    marginRight: 10,
+    fontSize: 30
+  },
+  searchIcon:{
+    marginRight: 10,
   },
   input: {
     flex: 1,
@@ -486,10 +423,9 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     flexDirection: "row",
-    color: "#2e78b7",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#2e78b7",
     borderRadius: 12,
     padding: 16,
     shadowColor: "#000",
@@ -531,6 +467,29 @@ const styles = StyleSheet.create({
   resultsContainer: {
     marginTop: 20,
   },
+  tabContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  tab: {
+    flex: 1,
+    padding: 16,
+    alignItems: "center",
+  },
+  activeTab: {
+    backgroundColor: "#4CAF50",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+  },
+  activeTabText: {
+    color: "#fff",
+  },
   resultsHeader: {
     marginBottom: 20,
   },
@@ -557,10 +516,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-  },
-  selectedCard: {
-    borderWidth: 2,
-    borderColor: "#4CAF50",
   },
   cardHeader: {
     flexDirection: "row",
@@ -621,8 +576,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
   },
+  predictionText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    fontStyle: "italic",
+  },
   chartContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
@@ -641,29 +602,18 @@ const styles = StyleSheet.create({
   },
   chart: {
     borderRadius: 16,
-    marginLeft: -10,
   },
-  legendContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginTop: 16,
-    gap: 12,
+  chartNote: {
+    marginTop: 12,
+    padding: 8,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
   },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  legendText: {
+  chartNoteText: {
     fontSize: 12,
     color: "#666",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   placeholderContainer: {
     alignItems: "center",
