@@ -10,7 +10,7 @@ interface BottomNavBarProps {
 export function BottomNavBar({ activeTab, setActiveTab }: BottomNavBarProps) {
   const navItems = [
     { id: 'home', icon: Home, label: 'Home' },
-    { id: 'map', icon: Map, label: 'Map' },
+    { id: 'Air Quality', icon: Map, label: 'Air Quality' },
     { id: 'alerts', icon: Bell, label: 'Alerts' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
