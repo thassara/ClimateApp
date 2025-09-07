@@ -202,7 +202,6 @@ const styles = StyleSheet.create({
     fontSize: 28, 
     fontWeight: "bold", 
     marginBottom: 20, 
-    textAlign: 'center',
     color: '#2c3e50'
   },
   searchContainer: {
@@ -314,6 +313,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 12,
+    fontSize: 25
   },
   aqiValue: {
     fontSize: 48,

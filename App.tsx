@@ -6,6 +6,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AirQualityScreen from "../ClimateApp/src/screens/Air quality/AirQualityScreen";
 import HistoryScreen from "../ClimateApp/src/screens/Air quality/HistoryScreen"; 
+import PredictionScreen from './src/screens/Air quality/PredictionScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,8 +24,8 @@ function AirQualityDashboard({ navigation }: { navigation: any }) {
       </TouchableOpacity>
 
       <TouchableOpacity style={AirQualityStyles.card} onPress={() => navigation.navigate("Future")}>
-        <Text style={AirQualityStyles.cardTitle}>Future</Text>
-        <Text style={AirQualityStyles.cardSubtitle}>Coming soon 🔮</Text>
+        <Text style={AirQualityStyles.cardTitle}>AQI Predictor</Text>
+        <Text style={AirQualityStyles.cardSubtitle}>Predict your location's Air Quality 🔮</Text>
       </TouchableOpacity>
     </View>
   );
@@ -55,7 +56,7 @@ export default function App() {
               <Stack.Screen name="Dashboard" component={AirQualityDashboard} />
               <Stack.Screen name="Air Quality" component={AirQualityScreen} />
               <Stack.Screen name="History" component={HistoryScreen} />
-              <Stack.Screen name="Future" component={FutureScreen} />
+              <Stack.Screen name="Future" component={PredictionScreen} />
             </Stack.Navigator>
           )}
           {activeTab === 'alerts' && (
