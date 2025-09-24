@@ -7,6 +7,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import AirQualityScreen from "../ClimateApp/src/screens/Air quality/AirQualityScreen";
 import HistoryScreen from "../ClimateApp/src/screens/Air quality/HistoryScreen"; 
 import PredictionScreen from './src/screens/Air quality/PredictionScreen';
+import FootprintTabsScreen from './src/screens/Common/FootprintTabsScreen';
 
 const Stack = createStackNavigator();
 
@@ -69,6 +70,15 @@ export default function App() {
               <Text>Settings Screen (Coming Soon)</Text>
             </View>
           )}
+          {activeTab === 'Footprint' && (
+            <View style={{ flex: 1 }}>
+              <View style={styles.footprintHeader}>
+                <Text style={styles.footprintHeaderIcon}>🌱</Text>
+                <Text style={styles.footprintHeaderText}>Carbon Footprint Calculator</Text>
+              </View>
+              <FootprintTabsScreen />
+            </View>
+          )}
         </View>
         <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </View>
@@ -105,5 +115,35 @@ const AirQualityStyles = StyleSheet.create({
   cardTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
   cardSubtitle: { fontSize: 14, color: "#555" },
   screenCenter: { flex: 1, justifyContent: "center", alignItems: "center" },
+});
+
+const styles = StyleSheet.create({
+  footprintHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 18,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginBottom: 2,
+    marginTop: 0,
+    shadowColor: '#388E3C',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  footprintHeaderIcon: {
+    fontSize: 28,
+    marginRight: 10,
+    color: '#43A047',
+  },
+  footprintHeaderText: {
+    fontSize: 22,
+    marginTop:20,
+    fontWeight: 'bold',
+    color: '#388E3C',
+    letterSpacing: 0.5,
+  },
 });
 

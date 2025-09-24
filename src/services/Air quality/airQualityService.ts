@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://192.168.43.173:5000/api"; // change to your backend URL
+const API_BASE = process.env.API_BASE_URL || "http://192.168.43.173:5000/api"; // change to your backend URL
 
 export const getAirQuality = async (city: string) => {
   const response = await axios.get(`${API_BASE}/air-quality/get?city=${city}`);

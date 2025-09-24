@@ -49,4 +49,4 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '600', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
 });
 
-export default HomeScreen;  
+export default HomeScreen;
