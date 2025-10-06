@@ -1,69 +1,12 @@
-const THEME_GREEN = '#43A047';
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Animated, RefreshControl, Modal, Pressable, Share, TextInput } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, Animated, RefreshControl, Modal, Pressable, Share, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-
-const newsData = [
-  {
-    id: '1',
-    title: 'Global Warming Hits New Highs',
-    image: require('../../assets/images/News/climate1.jpeg'),
-    source: 'BBC',
-    date: '2025-10-01',
-    content: 'Record-breaking temperatures have been observed globally...'
-  },
-  {
-    id: '2',
-    title: 'Oceans Are Rising',
-    image: require('../../assets/images/News/climate2.jpeg'),
-    source: 'CNN',
-    date: '2025-09-28',
-    content: 'Sea levels are rising at an unprecedented rate...'
-  },
-  {
-    id: '3',
-    title: 'Wildfires Spread Rapidly',
-    image: require('../../assets/images/News/climate3.jpeg'),
-    source: 'Reuters',
-    date: '2025-09-25',
-    content: 'Wildfires have spread across multiple continents...'
-  },
-];
-
-const verticalNews = [
-  {
-    id: 'a',
-    title: 'Renewable Energy Growth',
-    image: require('../../assets/images/News/climate4.jpeg'),
-  },
-  {
-    id: 'b',
-    title: 'Climate Policy Updates',
-    image: require('../../assets/images/News/climate5.jpeg'),
-  },
-    {
-    id: 'c',
-    title: 'Climate Policy Updates',
-    image: require('../../assets/images/News/climate5.jpeg'),
-  },
-    {
-    id: 'd',
-    title: 'Climate Policy Updates',
-    image: require('../../assets/images/News/climate5.jpeg'),
-  },
-];
-
+import { API_BASE_URL } from '@env';
+const THEME_GREEN = '#43A047';
 const { width } = Dimensions.get('window');
 
 type AnimatedCardHorizontalProps = {
-  item: {
-    id: string;
-    title: string;
-    image: any;
-    source: string;
-    date: string;
-    content?: string;
-  };
+  item: NewsItem;
   index: number;
   onPress: (item: any) => void;
   bookmarked: boolean;
@@ -92,13 +35,13 @@ const AnimatedCardHorizontal = ({ item, index, onPress, bookmarked, onBookmark }
       ]}
     >
       <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(item)}>
-        <Image source={item.image} style={styles.cardImageHorizontal} />
+        <Image source={{ uri: item.urlToImage }} style={styles.cardImageHorizontal} />
         <View style={styles.cardContentHorizontal}>
           <Text style={styles.cardTitleHorizontal}>{item.title}</Text>
-          <Text style={styles.cardSubtitleHorizontal}>{item.source} • {item.date}</Text>
+          <Text style={styles.cardSubtitleHorizontal}>{item.source.name} • {item.publishedAt?.slice(0, 10)}</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.bookmarkBtn} onPress={() => onBookmark(item.id)}>
+      <TouchableOpacity style={styles.bookmarkBtn} onPress={() => item.id && onBookmark(item.id)}>
   <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={22} color={bookmarked ? THEME_GREEN : '#bbb'} />
       </TouchableOpacity>
     </Animated.View>
@@ -106,14 +49,7 @@ const AnimatedCardHorizontal = ({ item, index, onPress, bookmarked, onBookmark }
 };
 
 type AnimatedCardVerticalProps = {
-  item: {
-    id: string;
-    title: string;
-    image: any;
-    source?: string;
-    date?: string;
-    content?: string;
-  };
+  item: NewsItem;
   index: number;
   onPress: (item: any) => void;
   bookmarked: boolean;
@@ -143,17 +79,29 @@ const AnimatedCardVertical = ({ item, index, onPress, bookmarked, onBookmark }: 
       ]}
     >
       <TouchableOpacity style={{flex:1, flexDirection:'row'}} activeOpacity={0.8} onPress={() => onPress(item)}>
-        <Image source={item.image} style={styles.cardImageVertical} />
+        <Image source={{ uri: item.urlToImage }} style={styles.cardImageVertical} />
         <View style={styles.cardContentVertical}>
           <Text style={styles.cardTitleVertical}>{item.title}</Text>
-          <Text style={styles.cardSubtitleVertical}>{item.source} • {item.date}</Text>
+          <Text style={styles.cardSubtitleVertical}>{item.source.name} • {item.publishedAt?.slice(0, 10)}</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.bookmarkBtn} onPress={() => onBookmark(item.id)}>
+      <TouchableOpacity style={styles.bookmarkBtn} onPress={() => { if (item.id) onBookmark(item.id); }}>
   <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={22} color={bookmarked ? THEME_GREEN : '#bbb'} />
       </TouchableOpacity>
     </Animated.View>
   );
+};
+
+type NewsItem = {
+  id?: string;
+  title: string;
+  url: string;
+  urlToImage?: string;
+  source: { name: string };
+  publishedAt?: string;
+  summary?: string;
+  description?: string;
+  content?: string;
 };
 
 const ClimateNewsScreen = () => {
@@ -162,14 +110,35 @@ const ClimateNewsScreen = () => {
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [newsData, setNewsData] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Use NEWS_API_URL from .env (set REACT_NATIVE_NEWS_API_URL in your .env file)
+  const NEWS_URL = `${API_BASE_URL}/api/news?from=2025-09-23&to=2025-09-23`;
+
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(NEWS_URL);
+      const json = await res.json();
+      setNewsData(json.articles || []);
+    } catch (e) {
+      setNewsData([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1200);
+    fetchNews().finally(() => setRefreshing(false));
   }, []);
 
   // Filter news by search
-  const filteredNewsData = newsData.filter(n => n.title.toLowerCase().includes(search.toLowerCase()));
-  const filteredVerticalNews = verticalNews.filter(n => n.title.toLowerCase().includes(search.toLowerCase()));
+  const filteredNewsData = newsData.filter(n => n.title?.toLowerCase().includes(search.toLowerCase()));
 
   // Bookmark logic
 interface IsBookmarked {
@@ -185,17 +154,19 @@ const handleBookmark: HandleBookmark = (id) => {
     setBookmarks((prev) => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]);
 };
 
-  // Modal logic
-interface NewsItem {
-    id: string;
+interface OpenModalArg {
+    id?: string;
     title: string;
-    image: any;
-    source?: string;
-    date?: string;
+    url: string;
+    urlToImage?: string;
+    source: { name: string };
+    publishedAt?: string;
+    summary?: string;
+    description?: string;
     content?: string;
 }
 
-const openModal = (item: NewsItem) => {
+const openModal = (item: OpenModalArg) => {
     setSelectedNews(item);
     setModalVisible(true);
 };
@@ -204,7 +175,6 @@ const openModal = (item: NewsItem) => {
     setSelectedNews(null);
   };
 
-  // Share logic
   const handleShare = async () => {
     if (!selectedNews) return;
     try {
@@ -235,23 +205,27 @@ const openModal = (item: NewsItem) => {
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
-      <Animated.ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.horizontalScroll}
-        contentContainerStyle={{ alignItems: 'center' }}
-      >
-        {filteredNewsData.map((item, idx) => (
-          <AnimatedCardHorizontal
-            key={item.id}
-            item={item}
-            index={idx}
-            onPress={openModal}
-            bookmarked={isBookmarked(item.id)}
-            onBookmark={handleBookmark}
-          />
-        ))}
-      </Animated.ScrollView>
+      {loading ? (
+        <ActivityIndicator size="large" color={THEME_GREEN} style={{ marginTop: 40 }} />
+      ) : (
+        <Animated.ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.horizontalScroll}
+          contentContainerStyle={{ alignItems: 'center' }}
+        >
+          {filteredNewsData.map((item, idx) => (
+            <AnimatedCardHorizontal
+              key={item.url || idx}
+              item={item}
+              index={idx}
+              onPress={openModal}
+              bookmarked={isBookmarked(item.url)}
+              onBookmark={() => handleBookmark(item.url)}
+            />
+          ))}
+        </Animated.ScrollView>
+      )}
       <View style={[styles.divider, { marginVertical: -8 }]} />
       <View style={[styles.verticalSectionBg, { marginTop: -8 }]}> 
         <View style={styles.verticalHeaderRow}>
@@ -263,14 +237,14 @@ const openModal = (item: NewsItem) => {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          {filteredVerticalNews.map((item, idx) => (
+          {filteredNewsData.map((item, idx) => (
             <AnimatedCardVertical
-              key={item.id}
+              key={item.url || idx}
               item={item}
               index={idx}
               onPress={openModal}
-              bookmarked={isBookmarked(item.id)}
-              onBookmark={handleBookmark}
+              bookmarked={isBookmarked(item.url)}
+              onBookmark={() => handleBookmark(item.url)}
             />
           ))}
         </ScrollView>
@@ -281,18 +255,20 @@ const openModal = (item: NewsItem) => {
           <View style={styles.modalContent}>
             {selectedNews && (
               <>
-                <Image source={selectedNews.image} style={styles.modalImage} />
+                {selectedNews.urlToImage ? (
+                  <Image source={{ uri: selectedNews.urlToImage }} style={styles.modalImage} />
+                ) : null}
                 <Text style={styles.modalTitle}>{selectedNews.title}</Text>
-                <Text style={styles.modalMeta}>{selectedNews.source} • {selectedNews.date}</Text>
-                <Text style={styles.modalBody}>{selectedNews.content}</Text>
+                <Text style={styles.modalMeta}>{selectedNews.source?.name} • {selectedNews.publishedAt?.slice(0, 10)}</Text>
+                <Text style={styles.modalBody}>{selectedNews.summary || selectedNews.description || selectedNews.content}</Text>
                 <View style={styles.modalActions}>
                   <TouchableOpacity style={styles.modalActionBtn} onPress={handleShare}>
                     <Ionicons name="share-social-outline" size={22} color={THEME_GREEN} />
                     <Text style={styles.modalActionText}>Share</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleBookmark(selectedNews.id)}>
-                    <Ionicons name={isBookmarked(selectedNews.id) ? 'bookmark' : 'bookmark-outline'} size={22} color={isBookmarked(selectedNews.id) ? THEME_GREEN : '#bbb'} />
-                    <Text style={styles.modalActionText}>{isBookmarked(selectedNews.id) ? 'Bookmarked' : 'Bookmark'}</Text>
+                  <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleBookmark(selectedNews.url)}>
+                    <Ionicons name={isBookmarked(selectedNews.url) ? 'bookmark' : 'bookmark-outline'} size={22} color={isBookmarked(selectedNews.url) ? THEME_GREEN : '#bbb'} />
+                    <Text style={styles.modalActionText}>{isBookmarked(selectedNews.url) ? 'Bookmarked' : 'Bookmark'}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.modalActionBtn} onPress={closeModal}>
                     <MaterialIcons name="close" size={22} color="#222" />
