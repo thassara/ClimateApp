@@ -1,0 +1,47 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#E8F5E9", justifyContent: "flex-start", alignItems: "center" },
+  tabBar: { flexDirection: "row", justifyContent: "space-around", width: "100%", backgroundColor: "#fff", paddingVertical: 12, borderBottomWidth: 1, borderColor: "#C8E6C9" },
+  tab: { alignItems: "center", flex: 1, paddingVertical: 6 },
+  tabActive: { borderBottomWidth: 3, borderColor: "#43A047" },
+  tabLabel: { fontSize: 14, color: "#888", marginTop: 2 },
+  tabLabelActive: { color: "#43A047", fontWeight: "bold" },
+  card: { backgroundColor: "#fff", borderRadius: 24, padding: 24, width: "92%", marginTop: 24, shadowColor: "#388E3C", shadowOpacity: 0.15, shadowRadius: 12, elevation: 8 },
+  cardTitle: { fontSize: 20, fontWeight: "bold", color: "#388E3C", marginBottom: 10 },
+  inputRow: { flexDirection: "row", alignItems: "center", marginBottom: 18, backgroundColor: "#F1F8E9", borderRadius: 12, paddingHorizontal: 10 },
+  inputIcon: { marginRight: 8 },
+  input: { flex: 1, fontSize: 18, color: "#388E3C", paddingVertical: 8 },
+  button: { backgroundColor: "#43A047", borderRadius: 12, padding: 14, alignItems: "center", marginTop: 10, shadowColor: "#388E3C", shadowOpacity: 0.2, shadowRadius: 4, elevation: 2 },
+  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 20 },
+  resultValue: { fontSize: 32, fontWeight: "bold", color: "#43A047", marginVertical: 6 },
+  resultText: { fontSize: 16, marginTop: 10, textAlign: "center" },
+  resultError: { color: "#E53935", fontSize: 18, fontWeight: "bold" },
+  closeBtn: { marginTop: 18, backgroundColor: "#43A047", borderRadius: 8, paddingVertical: 8, paddingHorizontal: 24 },
+  closeBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  resultCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 22,
+    marginTop: 18,
+    alignItems: 'center',
+    width: '92%',
+    shadowColor: '#388E3C',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  historyCard: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 18,
+    marginTop: 18,
+    width: '92%',
+    shadowColor: '#388E3C',
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+});
+
+export default styles;

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { AnimatedCardVerticalProps } from '../../types/newsScreen';
+import type { AnimatedCardVerticalProps } from '../../types/news/newsScreen';
 import styles from '../../css/news/ClimateNewsScreen.styles';
 
 const THEME_GREEN = '#43A047';

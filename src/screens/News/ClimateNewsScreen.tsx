@@ -3,12 +3,12 @@ import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, Animated, 
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { API_BASE_URL } from '@env';
 import styles from '../../css/news/ClimateNewsScreen.styles';
-import type { NewsItem } from '../../types/news';
+import type { NewsItem } from '../../types/news/news';
 
 import AnimatedCardHorizontal from '../../components/news/AnimatedCardHorizontal';
 import AnimatedCardVertical from '../../components/news/AnimatedCardVertical';
 import NewsSectionHeader from '../../components/news/NewsSectionHeader';
-import type { IsBookmarked, HandleBookmark } from '../../types/newsScreen';
+import type { IsBookmarked, HandleBookmark } from '../../types/news/newsScreen';
 
 const THEME_GREEN = '#43A047';
 const { width } = Dimensions.get('window');
@@ -22,7 +22,7 @@ const ClimateNewsScreen = () => {
   const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Use NEWS_API_URL from .env (set REACT_NATIVE_NEWS_API_URL in your .env file)
+
   const NEWS_URL = `${API_BASE_URL}/api/news?from=2025-09-23&to=2025-09-23`;
 
   const fetchNews = async () => {

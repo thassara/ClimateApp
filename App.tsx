@@ -7,7 +7,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import AirQualityScreen from "../ClimateApp/src/screens/Air quality/AirQualityScreen";
 import HistoryScreen from "../ClimateApp/src/screens/Air quality/HistoryScreen"; 
 import PredictionScreen from './src/screens/Air quality/PredictionScreen';
-import FootprintTabsScreen from './src/screens/Common/FootprintTabsScreen';
+import FootprintTabsScreen from './src/screens/CarbonFootprint/FootprintTabsScreen';
 import ClimateNewsScreen from './src/screens/News/ClimateNewsScreen';
 
 const Stack = createStackNavigator();

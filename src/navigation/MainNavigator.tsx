@@ -1,6 +1,6 @@
 import React from 'react';
 import HomeScreen from '.././screens/Common/HomeScreen';
-import FootprintTabsScreen from '../screens/Common/FootprintTabsScreen';
+import FootprintTabsScreen from '../screens/CarbonFootprint/FootprintTabsScreen';
 import AirQualityScreen from '../screens/Air quality/AirQualityScreen';
 import ClimateNewsScreen from '../screens/News/ClimateNewsScreen';
 import { NavigationContainer } from '@react-navigation/native';
