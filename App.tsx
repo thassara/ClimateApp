@@ -8,6 +8,7 @@ import AirQualityScreen from "../ClimateApp/src/screens/Air quality/AirQualitySc
 import HistoryScreen from "../ClimateApp/src/screens/Air quality/HistoryScreen"; 
 import PredictionScreen from './src/screens/Air quality/PredictionScreen';
 import FootprintTabsScreen from './src/screens/Common/FootprintTabsScreen';
+import ClimateNewsScreen from './src/screens/News/ClimateNewsScreen';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,9 @@ export default function App() {
             <View style={AirQualityStyles.screenCenter}>
               <Text>(Coming Soon)</Text>
             </View>
+          )}
+          {activeTab === 'news' && (
+            <ClimateNewsScreen />
           )}
           {activeTab === 'Air Quality' && (
             <Stack.Navigator screenOptions={{ headerShown: true }}>

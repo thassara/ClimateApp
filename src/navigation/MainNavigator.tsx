@@ -2,6 +2,7 @@ import React from 'react';
 import HomeScreen from '.././screens/Common/HomeScreen';
 import FootprintTabsScreen from '../screens/Common/FootprintTabsScreen';
 import AirQualityScreen from '../screens/Air quality/AirQualityScreen';
+import ClimateNewsScreen from '../screens/News/ClimateNewsScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -28,7 +29,8 @@ export default function MainNavigator() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Air Quality" component={AirQualityScreen} />
         <Tab.Screen name="Footprint" component={FootprintTabsScreen} />
-        {/* Add Alerts and Settings screens as needed */}
+  <Tab.Screen name="News" component={ClimateNewsScreen} />
+  {/* Add Alerts and Settings screens as needed */}
       </Tab.Navigator>
     </NavigationContainer>
   );
